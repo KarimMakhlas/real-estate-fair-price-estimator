@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: real-estate-api
+    runtime: python
+    buildCommand: pip install -r requirements-api.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: .
+      - key: DATALAKE_ROOT
+        value: data

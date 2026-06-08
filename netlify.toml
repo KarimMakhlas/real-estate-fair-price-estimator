@@ -1,0 +1,10 @@
+[build]
+  publish = "frontend"
+
+# Proxy all /api/* calls to the Render backend
+# Replace YOUR-APP with your actual Render service name after deploying
+[[redirects]]
+  from = "/api/*"
+  to = "https://real-estate-api.onrender.com/:splat"
+  status = 200
+  force = true

@@ -1,0 +1,41 @@
+host: "${ELASTICSEARCH_HOST:-localhost}"
+port: 9200
+scheme: "http"
+index: "real_estate_fair_price_estimates"
+batch_size: 1000
+
+mappings:
+  properties:
+    commune_code:
+      type: keyword
+    commune_name:
+      type: keyword
+    department_code:
+      type: keyword
+    property_type:
+      type: keyword
+    rooms_bucket:
+      type: keyword
+    transaction_count:
+      type: integer
+    median_price_m2:
+      type: double
+    avg_price_m2:
+      type: double
+    q25_price_m2:
+      type: double
+    q75_price_m2:
+      type: double
+    rent_m2:
+      type: double
+    estimated_gross_yield:
+      type: double
+    latest_rate_value:
+      type: double
+    market_liquidity_score:
+      type: double
+    fair_price_confidence:
+      type: keyword
+    computation_date:
+      type: date
+      format: "yyyy-MM-dd"

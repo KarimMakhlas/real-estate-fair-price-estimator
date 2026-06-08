@@ -1,0 +1,17 @@
+data_lake_root: "data"
+
+raw:
+  dvf: "data/raw/real_estate/dvf"
+  rents: "data/raw/real_estate/rents"
+  ecb_rates: "data/raw/real_estate/ecb_rates"
+
+formatted:
+  sales: "data/formatted/real_estate/sales"
+  rents: "data/formatted/real_estate/rents"
+  rates: "data/formatted/real_estate/rates"
+
+usage:
+  fair_price_estimates: "data/usage/real_estate/fair_price_estimates"
+
+elasticsearch:
+  index: "real_estate_fair_price_estimates"

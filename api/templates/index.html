@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real Estate Fair Price Estimator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    header p  { opacity: 0.85; font-size: 1rem; }
+
+    .container {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* ── Form card ── */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #2d3748;
+      border-bottom: 2px solid #ebf4ff;
+      padding-bottom: 0.75rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      background: #f7fafc;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3182ce;
+      background: white;
+    }
+
+    .btn {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #2b6cb0, #3182ce);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Result card ── */
+    #result { display: none; }
+
+    .verdict {
+      display: inline-block;
+      padding: 0.5rem 1.4rem;
+      border-radius: 999px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+    }
+    .verdict.FAIRLY_PRICED  { background: #c6f6d5; color: #22543d; }
+    .verdict.UNDERPRICED    { background: #bee3f8; color: #2a4365; }
+    .verdict.OVERPRICED     { background: #fed7d7; color: #742a2a; }
+
+    .price-range {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .price-box {
+      flex: 1;
+      min-width: 140px;
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      border: 1.5px solid #e2e8f0;
+    }
+    .price-box .label { font-size: 0.75rem; color: #718096; text-transform: uppercase; font-weight: 600; }
+    .price-box .value { font-size: 1.3rem; font-weight: 700; color: #2d3748; margin-top: 0.25rem; }
+    .price-box.highlight { border-color: #3182ce; background: #ebf8ff; }
+    .price-box.highlight .value { color: #2b6cb0; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .stat-item {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+    }
+    .stat-item .stat-label { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; }
+    .stat-item .stat-value { font-size: 1rem; font-weight: 700; color: #2d3748; margin-top: 0.2rem; }
+
+    .confidence-badge {
+      display: inline-block;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .confidence-badge.HIGH   { background: #c6f6d5; color: #276749; }
+    .confidence-badge.MEDIUM { background: #fefcbf; color: #744210; }
+    .confidence-badge.LOW    { background: #fed7d7; color: #742a2a; }
+
+    /* ── Error ── */
+    .error-box {
+      background: #fff5f5;
+      border: 1.5px solid #fc8181;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      color: #c53030;
+      font-size: 0.9rem;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #a0aec0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 Real Estate Fair Price Estimator</h1>
+  <p>Find out if a French property is underpriced, fairly priced, or overpriced.</p>
+</header>
+
+<div class="container">
+
+  <!-- Form -->
+  <div class="card">
+    <h2>Evaluate a Property</h2>
+    <div class="form-grid">
+      <div>
+        <label>Commune Code (INSEE)</label>
+        <select id="commune_code">
+          <option value="">Loading communes…</option>
+        </select>
+      </div>
+      <div>
+        <label>Property Type</label>
+        <select id="property_type">
+          <option value="Apartment">Apartment</option>
+          <option value="House">House</option>
+        </select>
+      </div>
+      <div>
+        <label>Number of Rooms</label>
+        <select id="rooms_bucket">
+          <option value="1 room">1 room</option>
+          <option value="2 rooms">2 rooms</option>
+          <option value="3 rooms" selected>3 rooms</option>
+          <option value="4 rooms">4 rooms</option>
+          <option value="5+ rooms">5+ rooms</option>
+        </select>
+      </div>
+      <div>
+        <label>Surface (m²)</label>
+        <input type="number" id="surface_m2" value="55" min="5" max="500" />
+      </div>
+      <div style="grid-column: 1 / -1">
+        <label>Asked Price (€)</label>
+        <input type="number" id="asked_price" value="250000" min="1000" />
+      </div>
+    </div>
+    <button class="btn" id="estimateBtn" onclick="estimate()">Estimate Fair Price</button>
+  </div>
+
+  <!-- Result -->
+  <div class="card" id="result">
+    <h2>Estimation Result</h2>
+    <div id="result-content"></div>
+  </div>
+
+</div>
+
+<footer>Real Estate Fair Price Estimator · Big Data Project · Data Lake Pipeline</footer>
+
+<script>
+const API = '';   // same origin
+
+async function loadCommunes() {
+  try {
+    const r = await fetch(`${API}/communes`);
+    const data = await r.json();
+    const sel = document.getElementById('commune_code');
+    sel.innerHTML = data.communes.map(c =>
+      `<option value="${c.commune_code}">${c.commune_name} (${c.commune_code})</option>`
+    ).join('');
+  } catch(e) {
+    document.getElementById('commune_code').innerHTML =
+      '<option value="44109">Nantes (44109)</option>' +
+      '<option value="75056">Paris (75056)</option>' +
+      '<option value="69123">Lyon (69123)</option>';
+  }
+}
+
+async function estimate() {
+  const btn = document.getElementById('estimateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Estimating…';
+
+  const body = {
+    commune_code:  document.getElementById('commune_code').value,
+    property_type: document.getElementById('property_type').value,
+    rooms_bucket:  document.getElementById('rooms_bucket').value,
+    surface_m2:    parseFloat(document.getElementById('surface_m2').value),
+    asked_price:   parseFloat(document.getElementById('asked_price').value),
+  };
+
+  const resultDiv = document.getElementById('result');
+  const contentDiv = document.getElementById('result-content');
+  resultDiv.style.display = 'block';
+
+  try {
+    const r = await fetch(`${API}/estimate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!r.ok) {
+      const err = await r.json();
+      contentDiv.innerHTML = `<div class="error-box">⚠️ ${err.detail}</div>`;
+      return;
+    }
+
+    const d = await r.json();
+
+    const labelText = {
+      FAIRLY_PRICED: '✅ Fairly Priced',
+      UNDERPRICED:   '📉 Underpriced',
+      OVERPRICED:    '📈 Overpriced',
+    }[d.label] || d.label;
+
+    const yieldPct = d.estimated_gross_yield
+      ? (d.estimated_gross_yield * 100).toFixed(2) + '%'
+      : '—';
+    const rate = d.latest_rate_value != null ? d.latest_rate_value + '%' : '—';
+
+    contentDiv.innerHTML = `
+      <div class="verdict ${d.label}">${labelText}</div>
+
+      <div class="price-range">
+        <div class="price-box">
+          <div class="label">Low (Q25)</div>
+          <div class="value">${fmt(d.low_fair_price)} €</div>
+        </div>
+        <div class="price-box highlight">
+          <div class="label">Fair Estimate</div>
+          <div class="value">${fmt(d.estimated_fair_price)} €</div>
+        </div>
+        <div class="price-box">
+          <div class="label">High (Q75)</div>
+          <div class="value">${fmt(d.high_fair_price)} €</div>
+        </div>
+        <div class="price-box" style="border-color:#e53e3e">
+          <div class="label">Asked Price</div>
+          <div class="value" style="color:#c53030">${fmt(d.asked_price)} €</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Commune</div>
+          <div class="stat-value">${d.commune_name}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Median Price/m²</div>
+          <div class="stat-value">${fmt(d.median_price_m2)} €/m²</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Rental Yield</div>
+          <div class="stat-value">${yieldPct}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">ECB Rate</div>
+          <div class="stat-value">${rate}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Transactions</div>
+          <div class="stat-value">${d.transaction_count.toLocaleString()}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Confidence</div>
+          <div class="stat-value">
+            <span class="confidence-badge ${d.confidence}">${d.confidence}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    contentDiv.innerHTML = `<div class="error-box">⚠️ Could not connect to API. Make sure the pipeline has run first.</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Estimate Fair Price';
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('fr-FR');
+}
+
+loadCommunes();
+</script>
+</body>
+</html>

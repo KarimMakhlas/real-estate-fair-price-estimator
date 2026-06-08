@@ -1,0 +1,161 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Real Estate Fair Price Estimator
+#
+# Services:
+#   postgres           – Airflow metadata database
+#   airflow-init       – one-shot setup (run once)
+#   airflow-webserver  – Airflow UI        → http://localhost:8080
+#   airflow-scheduler  – Airflow scheduler
+#   elasticsearch      – Search engine     → http://localhost:9200
+#   kibana             – Kibana dashboard  → http://localhost:5601
+#   api                – FastAPI + UI      → http://localhost:8000
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-airflow-common: &airflow-common
+  build: .                          # uses our custom Dockerfile (Java + PySpark)
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__WEBSERVER__SECRET_KEY: "changeme"
+    AIRFLOW__LOGGING__LOGGING_LEVEL: WARNING
+    DATALAKE_ROOT: /opt/airflow/data
+    ELASTICSEARCH_HOST: elasticsearch
+    ELASTICSEARCH_PORT: "9200"
+    SPARK_MASTER_URL: "local[*]"
+    JAVA_HOME: /usr/lib/jvm/default-java
+    PYTHONPATH: /opt/airflow
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./jobs:/opt/airflow/jobs
+    - ./config:/opt/airflow/config
+    - ./scripts:/opt/airflow/scripts
+    - ./data:/opt/airflow/data
+    - airflow-logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - datalake-net
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - datalake-net
+
+  # ── Airflow init (runs once) ─────────────────────────────────────────────────
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin --password admin \
+          --firstname Admin --lastname User \
+          --role Admin --email admin@example.com || true
+    restart: "no"
+
+  # ── Airflow webserver ────────────────────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ── Airflow scheduler ────────────────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ── Elasticsearch ─────────────────────────────────────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - datalake-net
+
+  # ── Kibana ────────────────────────────────────────────────────────────────────
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - datalake-net
+
+  # ── FastAPI + UI ──────────────────────────────────────────────────────────────
+  api:
+    image: python:3.11-slim
+    working_dir: /app
+    entrypoint: []
+    command: >
+      /bin/bash -c "pip install --quiet fastapi uvicorn[standard] pandas pyarrow &&
+      uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      DATALAKE_ROOT: /app/data
+      PYTHONPATH: /app
+    volumes:
+      - ./api:/app/api
+      - ./config:/app/config
+      - ./data:/app/data
+    ports:
+      - "8000:8000"
+    networks:
+      - datalake-net
+
+volumes:
+  postgres-data:
+  airflow-logs:
+  es-data:
+
+networks:
+  datalake-net:
+    driver: bridge

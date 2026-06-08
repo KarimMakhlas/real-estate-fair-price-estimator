@@ -1,0 +1,43 @@
+dvf:
+  # Demandes de Valeurs Foncières – historical property transactions in France
+  base_url: "https://files.data.gouv.fr/geo-dvf/latest/csv"
+  # One CSV per year; change years as needed
+  years:
+    - 2022
+    - 2023
+    - 2024
+  # DVF files are large; restrict to these departments for the MVP scope
+  # (Île-de-France: 75, 92, 93, 94 — or Loire-Atlantique: 44)
+  departments:
+    - "75"
+    - "92"
+    - "93"
+    - "94"
+  columns_to_keep:
+    - date_mutation
+    - valeur_fonciere
+    - type_local
+    - surface_reelle_bati
+    - nombre_pieces_principales
+    - code_commune
+    - nom_commune
+    - code_departement
+
+rents:
+  # Carte des loyers — rent indicators by commune
+  url: "https://www.data.gouv.fr/fr/datasets/r/9bcde17e-f50a-4c34-9537-5f0dd1e5e8a5"
+  columns_to_keep:
+    - code_commune
+    - nom_commune
+    - loyer_m2_appartement
+    - loyer_m2_maison
+  source_year: 2025
+
+ecb_rates:
+  # ECB Data Portal – ESTR (Euro Short-Term Rate)
+  api_url: "https://data-api.ecb.europa.eu/service/data/EON/B.ESTR.PERC.1M.2.EUR.000.NITE.A"
+  params:
+    format: "jsondata"
+    lastNObservations: 30
+  rate_type: "ESTR"
+  source: "ECB Data Portal"
