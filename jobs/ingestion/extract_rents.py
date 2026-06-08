@@ -78,8 +78,8 @@ def run(ingestion_date: str | None = None) -> None:
     df_house = _download_csv(rents_cfg["url_house"])
 
     # ── Detect commune code & name columns (flexible) ─────────────────────────
-    code_candidates = ["cod_communes", "code_commune", "codecommune", "cod_comm", "codgeo"]
-    name_candidates = ["lib_communes", "nom_commune", "libelle_commune", "lib_comm", "libgeo"]
+    code_candidates = ["insee_c", "cod_communes", "code_commune", "codecommune", "cod_comm", "codgeo"]
+    name_candidates = ["libgeo", "lib_communes", "nom_commune", "libelle_commune", "lib_comm"]
     rent_candidates = ["loypredm2", "loyer_m2", "loyer_pred_m2", "loy_pred_m2", "loyerm2", "pred_m2"]
 
     apt_code = _find_col(df_apt, code_candidates)

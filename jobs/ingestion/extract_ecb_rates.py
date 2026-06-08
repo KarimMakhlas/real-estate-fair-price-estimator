@@ -106,22 +106,26 @@ def run(ingestion_date: str | None = None) -> None:
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    fallback_rate = ecb_cfg.get("fallback_rate", 3.9)
+    records = []
+
     log.info("Fetching ECB rates from %s", api_url)
     try:
         response = requests.get(api_url, params=params, timeout=30)
         response.raise_for_status()
         data = response.json()
-    except requests.HTTPError as exc:
-        log.error("HTTP error fetching ECB data: %s", exc)
-        raise
+        records = _parse_ecb_json(data, rate_type, source)
     except Exception as exc:
-        log.error("Failed to fetch ECB data: %s", exc)
-        raise
-
-    records = _parse_ecb_json(data, rate_type, source)
+        log.warning("ECB API unavailable (%s) — using fallback rate %.2f%%", exc, fallback_rate)
 
     if not records:
-        log.warning("No rate records parsed from ECB response")
+        log.warning("No rate records from API — writing fallback rate %.2f%%", fallback_rate)
+        records = [{
+            "date": str(date.today()),
+            "rate_value": fallback_rate,
+            "rate_type": rate_type,
+            "source": f"{source} (fallback)",
+        }]
     else:
         log.info("Parsed %d rate observations", len(records))
 

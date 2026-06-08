@@ -31,10 +31,12 @@ rents:
   source_year: 2025
 
 ecb_rates:
-  # ECB Data Portal – ESTR (Euro Short-Term Rate)
-  api_url: "https://data-api.ecb.europa.eu/service/data/EON/B.ESTR.PERC.1M.2.EUR.000.NITE.A"
+  # ECB Data Portal – ESTR (Euro Short-Term Rate, replaced EONIA in 2022)
+  api_url: "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2QQF16.WT"
   params:
     format: "jsondata"
     lastNObservations: 30
   rate_type: "ESTR"
   source: "ECB Data Portal"
+  # Fallback value used if the API is unreachable (approximate 2024 ESTR)
+  fallback_rate: 3.9
