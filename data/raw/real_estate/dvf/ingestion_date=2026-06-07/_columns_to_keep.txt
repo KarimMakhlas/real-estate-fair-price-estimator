@@ -1,8 +1,0 @@
-date_mutation
-valeur_fonciere
-type_local
-surface_reelle_bati
-nombre_pieces_principales
-code_commune
-nom_commune
-code_departement

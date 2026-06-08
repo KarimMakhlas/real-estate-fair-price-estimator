@@ -1,0 +1,30 @@
+# ── Sensitive ─────────────────────────────────────────────────────────────────
+.env
+
+# ── Generated data (large, created by the pipeline) ──────────────────────────
+data/raw/
+data/formatted/
+data/usage/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# ── Spark temp ────────────────────────────────────────────────────────────────
+derby.log
+metastore_db/
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Notebooks checkpoints ─────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Scripts not needed for submission ─────────────────────────────────────────
+scripts/run_pipeline_local.sh
