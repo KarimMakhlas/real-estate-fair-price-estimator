@@ -24,13 +24,10 @@ dvf:
     - code_departement
 
 rents:
-  # Carte des loyers — rent indicators by commune
-  url: "https://www.data.gouv.fr/fr/datasets/r/9bcde17e-f50a-4c34-9537-5f0dd1e5e8a5"
-  columns_to_keep:
-    - code_commune
-    - nom_commune
-    - loyer_m2_appartement
-    - loyer_m2_maison
+  # Carte des loyers 2025 — rent indicators by commune (ANIL / data.gouv.fr)
+  # Two separate files: one for apartments, one for houses
+  url_apartment: "https://static.data.gouv.fr/resources/carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025/20251211-145010/pred-app-mef-dhup.csv"
+  url_house: "https://static.data.gouv.fr/resources/carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025/20251211-145039/pred-mai-mef-dhup.csv"
   source_year: 2025
 
 ecb_rates:
