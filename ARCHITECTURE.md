@@ -1,5 +1,21 @@
 # How It Works — Architecture & Pipeline
 
+## Screenshots
+
+### Stack running
+![Docker Compose](docs/docker-compose-start.png)
+
+### Airflow — DAG overview
+![Airflow DAGs](docs/airflow-dags-list.png)
+
+### Airflow — Pipeline graph
+![Airflow DAG Graph](docs/airflow-dag-graph.png)
+
+### UI — Estimation result
+![UI Result](docs/ui-estimation-result.png)
+
+---
+
 This document explains the internal architecture of the Real Estate Fair Price Estimator: where the data comes from, how it flows through the system, and how the fair price is calculated.
 
 ---
