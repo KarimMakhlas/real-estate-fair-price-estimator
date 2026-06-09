@@ -2,6 +2,8 @@
 
 A Big Data pipeline that tells you whether a French property is **underpriced, fairly priced, or overpriced** — built on a proper Data Lake architecture.
 
+🌐 **Live demo:** [ismyhouseexpensive.netlify.app](https://ismyhouseexpensive.netlify.app)
+
 ---
 
 ## What does it do?
