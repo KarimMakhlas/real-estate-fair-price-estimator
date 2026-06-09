@@ -28,3 +28,8 @@ logs/
 
 # ── Scripts not needed for submission ─────────────────────────────────────────
 scripts/run_pipeline_local.sh
+scripts/export_for_deploy.py
+
+# ── Empty dirs and cache junk ─────────────────────────────────────────────────
+notebooks/
+pytest-cache-files-*

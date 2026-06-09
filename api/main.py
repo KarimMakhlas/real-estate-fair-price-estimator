@@ -73,6 +73,7 @@ def _load_estimates() -> pd.DataFrame:
         _cache = pd.read_parquet(str(USAGE_PATH))
     elif DATA_JSON.exists():
         _cache = pd.read_json(str(DATA_JSON))
+        _cache["commune_code"] = _cache["commune_code"].astype(str)
     else:
         raise HTTPException(
             status_code=503,
